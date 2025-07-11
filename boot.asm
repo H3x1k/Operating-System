@@ -6,15 +6,15 @@ start:
     mov [boot_drive], dl
 
     ; Set up segments for real mode
-    mov ax, 0        ; Segments can't be directly set use 16 bit register
+    xor ax, ax        ; Segments can't be directly set use 16 bit register
     mov ds, ax       ; Data Segment
     mov es, ax       ; Extra Segment
     mov ss, ax       ; Stack Segment
-    mov sp, 0x7C00 - 512   ; The stack starts decreases from where the bootloader is loaded 
+    mov sp, 0x7C00   ; The stack starts decreases from where the bootloader is loaded 
 
 
-    mov si, disk_success_msg
-    call print_string
+    ;mov si, disk_success_msg
+    ;call print_string
 
     ; Load kernel here
     call load_kernel
@@ -45,6 +45,53 @@ start:
 
     ; Far jump to 32-bit section
     jmp CODE_SEG:protected_mode_entry
+
+
+load_kernel:       ; Uses Cylinder-Head-Sector addressing
+    mov bx, 0x1000         ; Load kernel at 0x1000
+    mov dh, 0              ; Head 0
+    mov dl, [boot_drive]   ; Drive number (saved from boot)
+    mov ch, 0              ; Cylinder 0
+    mov cl, 2              ; Start from sector 2 (sector 1 is the bootloader)
+    mov al, 1              ; Read 15 sectors (adjust based on kernel size)
+
+    mov ah, 0x02           ; BIOS read sectors function
+    int 0x13               ; Call BIOS
+
+    jc disk_error          ; Jump if carry flag set (error)
+
+    ret
+
+
+disk_error:
+    mov si, disk_error_msg
+    call print_string
+    jmp $
+
+
+
+
+print_string:
+    ; Print null-terminated string pointed to by SI
+    push ax
+    push bx
+
+print_loop:
+    lodsb            ; Load byte from [SI] into AL and increment SI
+    cmp al, 0        ; Check if null terminator
+    je print_done    ; If yes, we're done
+
+    mov ah, 0x0E     ; BIOS teletype function
+    mov bh, 0        ; Page number
+    mov bl, 0x07     ; Text attribute (white on black)
+    int 0x10
+
+    jmp print_loop
+
+print_done:
+    pop bx
+    pop ax
+    ret
 
 
 
@@ -105,50 +152,6 @@ DATA_SEG equ gdt_data - gdt_start
 
 
 
-load_kernel:       ; Uses Cylinder-Head-Sector addressing
-    mov bx, 0x1000         ; Load kernel at 0x1000
-    mov dh, 0              ; Head 0
-    mov dl, [boot_drive]   ; Drive number (saved from boot)
-    mov ch, 0              ; Cylinder 0
-    mov cl, 2              ; Start from sector 2 (sector 1 is the bootloader)
-    mov al, 15             ; Read 15 sectors (adjust based on kernel size)
-
-    mov ah, 0x02           ; BIOS read sectors function
-    int 0x13               ; Call BIOS
-
-    jc disk_error          ; Jump if carry flag set (error)
-
-    ret
-
-
-disk_error:
-    mov si, disk_error_msg
-    call print_string
-    jmp $
-
-
-
-print_string:
-    ; Print null-terminated string pointed to by SI
-    push ax
-    push bx
-
-print_loop:
-    lodsb            ; Load byte from [SI] into AL and increment SI
-    cmp al, 0        ; Check if null terminator
-    je print_done    ; If yes, we're done
-
-    mov ah, 0x0E     ; BIOS teletype function
-    mov bh, 0        ; Page number
-    mov bl, 0x07     ; Text attribute (white on black)
-    int 0x10
-
-    jmp print_loop
-
-print_done:
-    pop bx
-    pop ax
-    ret
 
 
 enable_a20: 
@@ -212,5 +215,6 @@ boot_drive db 0
 disk_error_msg db "Disk error!", 0
 disk_success_msg db "Disk read", 0
 protected_mode_msg db "32b mode", 0
+
 times 510 - ($ - $$) db 0
 dw 0xAA55
