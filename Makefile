@@ -23,5 +23,8 @@ kernel.elf: kernel.o linker.ld
 kernel.o: kernel.c
 	$(GCC) $(CFLAGS) -c $< -o $@
 
+run: os.bin
+	qemu-system-x86_64 -drive format=raw,file=os.bin
+
 clean:
 	rm -f *.o *.bin *.elf os.bin
