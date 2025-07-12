@@ -7,35 +7,52 @@ DD = dd
 CFLAGS = -ffreestanding -m32
 LDFLAGS = -T linker.ld -nostdlib
 
+BOOT_SRC = boot/boot.asm
+KERNEL_SRC = kernel/kernel.c
 
+BUILD_DIR = build
 
-all: os.bin
+BOOT_BIN = $(BUILD_DIR)/boot.bin
+KERNEL_O = $(BUILD_DIR)/kernel.o
+KERNEL_ELF = $(BUILD_DIR)/kernel.elf
+KERNEL_BIN = $(BUILD_DIR)/kernel.bin
+PADDED_KERNEL_BIN = $(BUILD_DIR)/padded_kernel.bin
+OS_BIN = $(BUILD_DIR)/os.bin
 
-os.bin: boot.bin padded_kernel.bin
-	cat boot.bin padded_kernel.bin > os.bin
+all: $(OS_BIN)
 
-boot.bin: boot.asm
+# Make sure build dir exists
+$(BUILD_DIR):
+	mkdir -p $(BUILD_DIR)
+
+$(BOOT_BIN): $(BOOT_SRC) | $(BUILD_DIR)
 	$(ASM) -f bin $< -o $@
 
-padded_kernel.bin: kernel.bin
-	$(eval KERNEL_SIZE := $(shell stat -c %s kernel.bin))
+$(KERNEL_O): $(KERNEL_SRC) | $(BUILD_DIR)
+	$(GCC) $(CFLAGS) -c $< -o $@
+
+$(KERNEL_ELF): $(KERNEL_O) linker.ld | $(BUILD_DIR)
+	$(LD) $(LDFLAGS) -o $@ $(KERNEL_O)
+
+$(KERNEL_BIN): $(KERNEL_ELF) | $(BUILD_DIR)
+	$(OBJCOPY) -O binary $< $@
+
+$(PADDED_KERNEL_BIN): $(KERNEL_BIN) | $(BUILD_DIR)
+	$(eval KERNEL_SIZE := $(shell stat -c %s $<))
 	$(eval SECTOR_COUNT := $(shell echo $$(( ($(KERNEL_SIZE) + 511) / 512 ))))
 	@echo Kernel size: $(KERNEL_SIZE)
 	@echo Sector count: $(SECTOR_COUNT)
-	cp kernel.bin padded_kernel.bin
-	truncate -s $$(( $(SECTOR_COUNT) * 512 )) padded_kernel.bin
+	cp $< $@
+	truncate -s $$(( $(SECTOR_COUNT) * 512 )) $@
 
-kernel.bin: kernel.elf
-	$(OBJCOPY) -O binary $< $@
+$(OS_BIN): $(BOOT_BIN) $(PADDED_KERNEL_BIN) | $(BUILD_DIR)
+	cat $^ > $@
 
-kernel.elf: kernel.o linker.ld
-	$(LD) $(LDFLAGS) -o $@ kernel.o
 
-kernel.o: kernel.c
-	$(GCC) $(CFLAGS) -c $< -o $@
-
-run: os.bin
-	qemu-system-x86_64 -drive format=raw,file=os.bin
+run: $(OS_BIN)
+	qemu-system-x86_64 -drive format=raw,file=$<
 
 clean:
-	rm -f *.o *.bin *.elf os.bin
+	rm -rf $(BUILD_DIR)
+
+.PHONY: all clean run
