@@ -53,7 +53,7 @@ load_kernel:       ; Uses Cylinder-Head-Sector addressing
     mov dl, [boot_drive]   ; Drive number (saved from boot)
     mov ch, 0              ; Cylinder 0
     mov cl, 2              ; Start from sector 2 (sector 1 is the bootloader)
-    mov al, 1              ; Read 15 sectors (adjust based on kernel size)
+    mov al, 2              ; Read 15 sectors (adjust based on kernel size)
 
     mov ah, 0x02           ; BIOS read sectors function
     int 0x13               ; Call BIOS

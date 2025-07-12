@@ -2,17 +2,28 @@ ASM = nasm
 GCC = i686-elf-GCC
 LD = i686-elf-ld
 OBJCOPY = i686-elf-objcopy
+DD = dd
 
 CFLAGS = -ffreestanding -m32
 LDFLAGS = -T linker.ld -nostdlib
 
+
+
 all: os.bin
 
-os.bin: boot.bin kernel.bin
-	cat boot.bin kernel.bin > os.bin
+os.bin: boot.bin padded_kernel.bin
+	cat boot.bin padded_kernel.bin > os.bin
 
 boot.bin: boot.asm
 	$(ASM) -f bin $< -o $@
+
+padded_kernel.bin: kernel.bin
+	$(eval KERNEL_SIZE := $(shell stat -c %s kernel.bin))
+	$(eval SECTOR_COUNT := $(shell echo $$(( ($(KERNEL_SIZE) + 511) / 512 ))))
+	@echo Kernel size: $(KERNEL_SIZE)
+	@echo Sector count: $(SECTOR_COUNT)
+	cp kernel.bin padded_kernel.bin
+	truncate -s $$(( $(SECTOR_COUNT) * 512 )) padded_kernel.bin
 
 kernel.bin: kernel.elf
 	$(OBJCOPY) -O binary $< $@
