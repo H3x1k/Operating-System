@@ -1,3 +1,6 @@
+# Make sure the read sectors register in load_kernel in boot.asm
+# does read the amount of sectors the kernel takes up
+
 ASM = nasm
 GCC = i686-elf-GCC
 LD = i686-elf-ld

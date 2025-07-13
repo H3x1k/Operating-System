@@ -5,16 +5,14 @@
 
 void kernel_main() {
 
+    init_screen();
+
     print_string("Hello, World!");
 
     while(1) {
         char typedChar = get_scancode();  // Get scan code
         char ascii = scancode_to_ascii((uint8_t)typedChar);  // Convert to ASCII
-
-        if (ascii) {  // Only print if it's a valid character
-            char str[2] = { ascii, '\0' };  // Make a proper null-terminated string
-            print_string(str);
-        }
+        print_char(ascii);
     }
 }
 

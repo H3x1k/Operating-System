@@ -3,7 +3,9 @@
 
 #include <stdint.h>
 
+void init_screen();
 void redraw_screen();
+void print_char(char c);
 void print_string(const char *str);
 void scroll_up();
 void scroll_down();

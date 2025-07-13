@@ -13,7 +13,9 @@
 /*
 
 -----  ISSUES  -----
-- Cursor only showing in weird conditions
+- Cursor disapears after 25 columns (issue using vga_height which is 25 instead of vga_width)
+- Backspace somehow works
+- Scolling is messed up not sure what it is
 
 */
 
@@ -29,6 +31,16 @@ static uint16_t cursor_pos = 0;
 
 static inline void outb(uint16_t port, uint8_t val) {
     __asm__ volatile ("outb %0, %1" : : "a"(val), "Nd"(port));
+}
+
+void init_screen() {
+    for (int i = 0; i < BUFFER_LINES; i++) {
+        for (int j = 0; j < VGA_HEIGHT; j++) {
+            screen_text_buffer[i][j] = ((uint16_t)DEFAULT_ATTR << 8) | ' ';
+        }
+    }
+    cursor_pos = 0;
+    scroll_offset = 0;
 }
 
 void redraw_screen() {
@@ -49,7 +61,7 @@ void move_cursor(uint16_t pos) {
     screen_pos = pos;
 
     if (screen_pos < 0 || screen_pos >= VGA_WIDTH * VGA_HEIGHT) {
-        return; // Don't update hardware cursor if it's off screen
+        //return; // Don't update hardware cursor if it's off screen
     }
 
     outb(0x3D4, 0x0F);
@@ -70,6 +82,39 @@ void scroll_down() {
         scroll_offset++;
         redraw_screen();
     }
+}
+
+void print_char(char c) {
+    int line = cursor_pos / VGA_WIDTH;
+    int col = cursor_pos % VGA_WIDTH;
+
+    if (c == '\n') {
+        cursor_pos += VGA_WIDTH - col;
+    } else if (c == '\b') {
+        if (cursor_pos > 0) {
+            cursor_pos--;
+            int back_line = cursor_pos / VGA_WIDTH;
+            int back_col = cursor_pos % VGA_WIDTH;
+            screen_text_buffer[back_line][back_col] = ((uint16_t)DEFAULT_ATTR << 8) | ' ';
+        }
+    } else {
+        if (line < BUFFER_LINES) {
+            screen_text_buffer[line][col] = ((uint16_t)DEFAULT_ATTR << 8) | c;
+            cursor_pos++;
+        }
+    }
+
+    // Scroll if necessary
+    if (cursor_pos >= (scroll_offset + VGA_HEIGHT) * VGA_WIDTH) {
+        if (scroll_offset + VGA_HEIGHT < BUFFER_LINES)
+            scroll_offset++;
+        else
+            cursor_pos -= VGA_WIDTH;  // prevent writing off buffer end
+        redraw_screen();
+    }
+
+    redraw_screen();
+    move_cursor(cursor_pos);
 }
 
 void print_string(const char *str) {
