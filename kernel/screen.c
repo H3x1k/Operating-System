@@ -13,9 +13,9 @@
 /*
 
 -----  ISSUES  -----
-- Cursor disapears after 25 columns (issue using vga_height which is 25 instead of vga_width)
+- Cursor disapears after scroll (move_cursor needs work)
 - Backspace somehow works
-- Scolling is messed up not sure what it is
+- Scolling needs work
 
 */
 
@@ -35,7 +35,7 @@ static inline void outb(uint16_t port, uint8_t val) {
 
 void init_screen() {
     for (int i = 0; i < BUFFER_LINES; i++) {
-        for (int j = 0; j < VGA_HEIGHT; j++) {
+        for (int j = 0; j < VGA_WIDTH; j++) {
             screen_text_buffer[i][j] = ((uint16_t)DEFAULT_ATTR << 8) | ' ';
         }
     }
@@ -57,12 +57,12 @@ void redraw_screen() {
 void move_cursor(uint16_t pos) {
     cursor_pos = pos;
 
-    uint16_t screen_pos = pos - (scroll_offset * VGA_WIDTH);
-    screen_pos = pos;
+    //uint16_t screen_pos = pos - (scroll_offset * VGA_WIDTH);
+    //screen_pos = pos;
 
-    if (screen_pos < 0 || screen_pos >= VGA_WIDTH * VGA_HEIGHT) {
+    //if (screen_pos < 0 || screen_pos >= VGA_WIDTH * VGA_HEIGHT) {
         //return; // Don't update hardware cursor if it's off screen
-    }
+    //}
 
     outb(0x3D4, 0x0F);
     outb(0x3D5, (uint8_t)(pos & 0xFF));

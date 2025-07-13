@@ -1,5 +1,18 @@
 # Make sure the read sectors register in load_kernel in boot.asm
 # does read the amount of sectors the kernel takes up
+# If the read sectors register goes over the kernel sector size
+# then you will get a disk error
+
+# One thing you can do to make the sector loading automatic
+# is to at build time find the size of the kernel and 
+# set the first to bytes to that size and have the bootloader
+# read the first sector, read the first two bytes from
+# memory and then load the given number of sectors
+# and jump to the loaded memory address + 0x02
+# this would require the linker file to be changed too
+
+# Another method is to use a filesystem
+# or multiboot header
 
 ASM = nasm
 GCC = i686-elf-GCC
