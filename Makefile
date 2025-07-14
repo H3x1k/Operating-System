@@ -23,47 +23,28 @@ DD = dd
 CFLAGS = -ffreestanding -m32 -Iinclude
 LDFLAGS = -T linker.ld -nostdlib
 
-BOOT_SRC = boot/boot.asm
-KERNEL_SRC = kernel/kernel.c
-SCREEN_SRC = kernel/screen.c
-KEYBOARD_SRC = kernel/keyboard.c
-TERMINAL_SRC = kernel/terminal.c
-ATA_SRC = kernel/ata.c
-
 BUILD_DIR = build
 
+BOOT_SRC = boot/boot.asm
 BOOT_BIN = $(BUILD_DIR)/boot.bin
 
-KERNEL_O = $(BUILD_DIR)/kernel.o
+KERNEL_SRCS := $(wildcard kernel/*.c)
+KERNEL_OBJS := $(patsubst kernel/%.c, build/%.o, $(KERNEL_SRCS))
+
 KERNEL_ELF = $(BUILD_DIR)/kernel.elf
 KERNEL_BIN = $(BUILD_DIR)/kernel.bin
 PADDED_KERNEL_BIN = $(BUILD_DIR)/padded_kernel.bin
-
-SCREEN_O = $(BUILD_DIR)/screen.o
-
-KEYBOARD_O = $(BUILD_DIR)/keyboard.o
-
-TERMINAL_O = $(BUILD_DIR)/terminal.o
-
-ATA_O = $(BUILD_DIR)/ata.o
-
-KERNEL_OBJS = $(KERNEL_O) $(SCREEN_O) $(KEYBOARD_O) $(TERMINAL_O) $(ATA_O)
 
 OS_BIN = $(BUILD_DIR)/os.bin
 
 all: $(OS_BIN)
 
-# Make sure build dir exists
 $(BUILD_DIR):
 	mkdir -p $(BUILD_DIR)
-
 
 $(BOOT_BIN): $(BOOT_SRC) | $(BUILD_DIR)
 	$(ASM) -f bin $< -o $@
 
-
-$(KERNEL_O): $(KERNEL_SRC) | $(BUILD_DIR)
-	$(GCC) $(CFLAGS) -c $< -o $@
 
 $(KERNEL_ELF): $(KERNEL_OBJS) linker.ld | $(BUILD_DIR)
 	$(LD) $(LDFLAGS) -o $@ $(KERNEL_OBJS)
@@ -79,23 +60,11 @@ $(PADDED_KERNEL_BIN): $(KERNEL_BIN) | $(BUILD_DIR)
 	cp $< $@
 	truncate -s $$(( $(SECTOR_COUNT) * 512 )) $@
 
-
-$(SCREEN_O): $(SCREEN_SRC) | $(BUILD_DIR)
+build/%.o: kernel/%.c | $(BUILD_DIR)
 	$(GCC) $(CFLAGS) -c $< -o $@
-
-$(KEYBOARD_O) : $(KEYBOARD_SRC) | $(BUILD_DIR)
-	$(GCC) $(CFLAGS) -c $< -o $@
-
-$(TERMINAL_O) : $(TERMINAL_SRC) | $(BUILD_DIR)
-	$(GCC) $(CFLAGS) -c $< -o $@
-
-$(ATA_O) : $(ATA_SRC) | $(BUILD_DIR)
-	$(GCC) $(CFLAGS) -c $< -o $@
-
 
 $(OS_BIN): $(BOOT_BIN) $(PADDED_KERNEL_BIN) | $(BUILD_DIR)
 	cat $^ > $@
-
 
 run: $(OS_BIN)
 	qemu-system-x86_64 -drive format=raw,file=$<

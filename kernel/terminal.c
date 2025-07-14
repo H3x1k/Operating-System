@@ -2,7 +2,12 @@
 #include "terminal.h"
 #include <stdbool.h>
 
+#ifndef NULL
+#define NULL ((void*)0)
+#endif
+
 #define MAX_INPUT 256
+#define MAX_ARGS 8
 
 static char input_buffer[MAX_INPUT];
 static int input_len = 0;
@@ -14,6 +19,53 @@ static int strcmp(const char* s1, const char* s2) {
     }
     return *(const unsigned char*)s1 - *(const unsigned char*)s2;
 }
+
+static char* strncpy(char* dest, const char* src, unsigned int n) {
+    unsigned int i;
+    for (i = 0; i < n && src[i] != '\0'; i++) {
+        dest[i] = src[i];
+    }
+    for (; i < n; i++) {
+        dest[i] = '\0';
+    }
+    return dest;
+}
+
+static char* strtok(char* str, const char* delim) {
+    static char* next;
+    if (str) {
+        next = str;
+    }
+    if (!next) {
+        return 0;
+    }
+
+    // Skip leading delimiters
+    char* start = next;
+    while (*start && strchr(delim, *start)) {
+        start++;
+    }
+    if (*start == '\0') {
+        next = 0;
+        return 0;
+    }
+
+    // Find the end of the token
+    char* end = start;
+    while (*end && !strchr(delim, *end)) {
+        end++;
+    }
+
+    if (*end) {
+        *end = '\0';
+        next = end + 1;
+    } else {
+        next = 0;
+    }
+
+    return start;
+}
+
 
 void terminal_put_char(char c) {
     if (c == '\n') {
@@ -33,17 +85,45 @@ void terminal_put_char(char c) {
 }
 
 void terminal_handle_command(const char* cmd) {
-    if (strcmp(cmd, "help") == 0) {
-        print_string("Available commands:\n");
-        print_string("help - Show this help message\n");
-        print_string("clear - Clear the screen\n");
-    } else if (strcmp(cmd, "clear") == 0) {
-        init_screen(); // defined in screen.c
+     char* args[MAX_ARGS];
+    int argc = 0;
+
+    // Make a modifiable copy of the input
+    static char buffer[256];
+    strncpy(buffer, cmd, sizeof(buffer));
+    buffer[sizeof(buffer) - 1] = '\0';
+
+    // Tokenize input by space
+    char* token = strtok(buffer, " ");
+    while (token && argc < MAX_ARGS) {
+        args[argc++] = token;
+        token = strtok(NULL, " ");
+    }
+
+    if (argc == 0)
+        return;
+
+    // --- Command dispatch ---
+    if (strcmp(args[0], "echo") == 0) {
+        for (int i = 1; i < argc; i++) {
+            print_string(args[i]);
+            if (i < argc - 1)
+                print_char(' ');
+        }
+        print_char('\n');
+    } else if (strcmp(args[0], "clear") == 0) {
+        init_screen();
         redraw_screen();
+    } else if (strcmp(args[0], "help") == 0) {
+        print_string("Available commands:\n");
+        print_string("  help         - Show this message\n");
+        print_string("  clear        - Clear the screen\n");
+        print_string("  echo [text]  - Print text\n");
     } else {
         print_string("Unknown command: ");
-        print_string(cmd);
+        print_string(args[0]);
         print_char('\n');
     }
-    print_char('>');
+
+    print_string("> ");
 }

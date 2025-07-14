@@ -10,7 +10,7 @@ void kernel_main() {
 
     init_screen();
 
-    print_string("Hello, World!\n>");
+    print_string("Hello, World!\n> ");
 
     /* Code to write to hdd
     uint8_t buffer[512] = {0};
