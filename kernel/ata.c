@@ -1,5 +1,7 @@
 #include "ata.h"
 
+#include "io.h"
+
 #define ATA_DATA       0x1F0
 #define ATA_SECCOUNT0  0x1F2
 #define ATA_LBA0       0x1F3
@@ -11,24 +13,6 @@
 
 #define ATA_CMD_WRITE  0x30
 #define ATA_CMD_FLUSH  0xE7
-
-static inline void io_wait() {
-    for (volatile int i = 0; i < 1000; ++i);
-}
-
-static inline void outb(uint16_t port, uint8_t val) {
-    asm volatile ("outb %0, %1" : : "a"(val), "Nd"(port));
-}
-
-static inline void outw(uint16_t port, uint16_t val) {
-    asm volatile ("outw %0, %1" : : "a"(val), "Nd"(port));
-}
-
-static inline uint8_t inb(uint16_t port) {
-    uint8_t ret;
-    asm volatile ("inb %1, %0" : "=a"(ret) : "Nd"(port));
-    return ret;
-}
 
 void ata_write_sector(uint32_t lba, uint8_t* buffer) {
     outb(ATA_SECCOUNT0, 1);                  // 1 sector

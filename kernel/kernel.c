@@ -9,7 +9,7 @@ void kernel_main() {
 
     init_screen();
 
-    print_string("Hello, World!");
+    print_string("Hello, World!\n");
 
     uint8_t buffer[512] = {0};
     const char* msg = "Hello from OS!";

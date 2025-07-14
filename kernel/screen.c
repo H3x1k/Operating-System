@@ -1,5 +1,7 @@
 #include "screen.h"
 
+#include "io.h"
+
 /*
     This uses VGA
     VGA is 80 by 25
@@ -28,10 +30,6 @@
 static uint16_t screen_text_buffer[BUFFER_LINES][VGA_WIDTH];
 static int scroll_offset = 0;
 static uint16_t cursor_pos = 0;
-
-static inline void outb(uint16_t port, uint8_t val) {
-    __asm__ volatile ("outb %0, %1" : : "a"(val), "Nd"(port));
-}
 
 void init_screen() {
     for (int i = 0; i < BUFFER_LINES; i++) {
