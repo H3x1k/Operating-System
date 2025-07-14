@@ -27,6 +27,7 @@ BOOT_SRC = boot/boot.asm
 KERNEL_SRC = kernel/kernel.c
 SCREEN_SRC = kernel/screen.c
 KEYBOARD_SRC = kernel/keyboard.c
+ATA_SRC = kernel/ata.c
 
 BUILD_DIR = build
 
@@ -41,7 +42,9 @@ SCREEN_O = $(BUILD_DIR)/screen.o
 
 KEYBOARD_O = $(BUILD_DIR)/keyboard.o
 
-KERNEL_OBJS = $(KERNEL_O) $(SCREEN_O) $(KEYBOARD_O)
+ATA_O = $(BUILD_DIR)/ata.o
+
+KERNEL_OBJS = $(KERNEL_O) $(SCREEN_O) $(KEYBOARD_O) $(ATA_O)
 
 OS_BIN = $(BUILD_DIR)/os.bin
 
@@ -78,6 +81,9 @@ $(SCREEN_O): $(SCREEN_SRC) | $(BUILD_DIR)
 	$(GCC) $(CFLAGS) -c $< -o $@
 
 $(KEYBOARD_O) : $(KEYBOARD_SRC) | $(BUILD_DIR)
+	$(GCC) $(CFLAGS) -c $< -o $@
+
+$(ATA_O) : $(ATA_SRC) | $(BUILD_DIR)
 	$(GCC) $(CFLAGS) -c $< -o $@
 
 
