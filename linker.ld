@@ -9,6 +9,10 @@ ENTRY(_start)
 SECTIONS {
     . = 0x1000;
     
+    .kernel_header ALIGN(2) : {
+        KEEP(*(.kernel_header))
+    }
+    
     .text : {
         *(.text.start)
         *(.text)

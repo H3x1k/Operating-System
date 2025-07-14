@@ -31,6 +31,16 @@ static char* strncpy(char* dest, const char* src, unsigned int n) {
     return dest;
 }
 
+static char* strchr(const char* s, int c) {
+    while (*s) {
+        if (*s == (char)c) {
+            return (char*)s;
+        }
+        s++;
+    }
+    return 0;
+}
+
 static char* strtok(char* str, const char* delim) {
     static char* next;
     if (str) {

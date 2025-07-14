@@ -53,11 +53,23 @@ load_kernel:       ; Uses Cylinder-Head-Sector addressing
     mov dl, [boot_drive]   ; Drive number (saved from boot)
     mov ch, 0              ; Cylinder 0
     mov cl, 2              ; Start from sector 2 (sector 1 is the bootloader)
-    mov al, 5              ; Read N sectors (adjust based on kernel size)
+    mov al, 1              ; Read 1 sector (the first 2 bytes contain the kernel size)
 
     mov ah, 0x02           ; BIOS read sectors function
     int 0x13               ; Call BIOS
+    jc disk_error          ; Jump if carry flag set (error)
 
+    mov ax, [0x1000]       ; Read the first two bytes for kernel size
+
+    mov bx, 0x1000         ; Load kernel at 0x1000
+    mov dh, 0              ; Head 0
+    mov dl, [boot_drive]   ; Drive number (saved from boot)
+    mov ch, 0              ; Cylinder 0
+    mov cl, 2              ; Start from sector 2 (sector 1 is the bootloader)
+    mov al, al             ; kernel size
+
+    mov ah, 0x02           ; BIOS read sectors function
+    int 0x13               ; Call BIOS
     jc disk_error          ; Jump if carry flag set (error)
 
     ret
@@ -109,7 +121,7 @@ protected_mode_entry:
     mov esp, 0x90000 ; Extended stack pointer 
 
     ; Jump to C kernel
-    jmp CODE_SEG:0x1000       ; Jump to where the kernel is loaded
+    jmp CODE_SEG:0x1002       ; Jump to where the kernel is loaded + 2 bytes because of kernel header size
 
     jmp $
 

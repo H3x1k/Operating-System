@@ -10,6 +10,7 @@
 # memory and then load the given number of sectors
 # and jump to the loaded memory address + 0x02
 # this would require the linker file to be changed too
+# DONE
 
 # Another method is to use a filesystem
 # or multiboot header
@@ -58,6 +59,7 @@ $(PADDED_KERNEL_BIN): $(KERNEL_BIN) | $(BUILD_DIR)
 	@echo Kernel size: $(KERNEL_SIZE)
 	@echo Sector count: $(SECTOR_COUNT)
 	cp $< $@
+	printf "%c%c" $$(( $(SECTOR_COUNT) & 0xFF )) $$(( ($(SECTOR_COUNT) >> 8) & 0xFF )) | dd of=$(PADDED_KERNEL_BIN) bs=1 count=2 conv=notrunc
 	truncate -s $$(( $(SECTOR_COUNT) * 512 )) $@
 
 build/%.o: kernel/%.c | $(BUILD_DIR)
