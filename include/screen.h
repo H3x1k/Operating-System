@@ -3,6 +3,9 @@
 
 #include <stdint.h>
 
+extern uint16_t cursor_pos;
+extern int scroll_offset;
+
 void init_screen();
 void redraw_screen();
 void print_char(char c);

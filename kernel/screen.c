@@ -28,8 +28,8 @@
 #define BUFFER_LINES 1000
 
 static uint16_t screen_text_buffer[BUFFER_LINES][VGA_WIDTH];
-static int scroll_offset = 0;
-static uint16_t cursor_pos = 0;
+int scroll_offset = 0;
+uint16_t cursor_pos = 0;
 
 void init_screen() {
     for (int i = 0; i < BUFFER_LINES; i++) {
