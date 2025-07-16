@@ -12,15 +12,6 @@ void kernel_main() {
 
     print_string("Hello, World!\n> ");
 
-    /* Code to write to hdd
-    uint8_t buffer[512] = {0};
-    const char* msg = "Hello from OS!";
-    for (int i = 0; msg[i]; i++)
-        buffer[i] = msg[i];
-
-    ata_write_sector(6, buffer);  // Don't use sector 0 — it's the MBR
-    */
-
     while(1) {
         char typedChar = get_scancode();  // Get scan code
         char ascii = scancode_to_ascii((uint8_t)typedChar);  // Convert to ASCII

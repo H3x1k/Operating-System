@@ -1,5 +1,6 @@
 #include "screen.h"
 #include "terminal.h"
+#include "ata.h"
 #include <stdbool.h>
 
 #ifndef NULL
@@ -121,6 +122,18 @@ void terminal_handle_command(const char* cmd) {
                 print_char(' ');
         }
         print_char('\n');
+    } else if (strcmp(args[0], "wd") == 0) {
+        uint8_t buffer[512] = {0};
+        int bi = 0;
+        for (int i = 1; i < argc; i++) {
+            for (int j = 0; args[i][j]; j++) {
+                buffer[bi++] = args[i][j];
+            }
+            if (i < argc - 1) {
+                buffer[bi++] = ' ';
+            }
+        }
+        ata_write_sector(0, buffer);
     } else if (strcmp(args[0], "clear") == 0) {
         init_screen();
         redraw_screen();
@@ -129,6 +142,7 @@ void terminal_handle_command(const char* cmd) {
         print_string("  help         - Show this message\n");
         print_string("  clear        - Clear the screen\n");
         print_string("  echo [text]  - Print text\n");
+        print_string("  wd [text]    - Write to drive\n");
     } else {
         print_string("Unknown command: ");
         print_string(args[0]);
