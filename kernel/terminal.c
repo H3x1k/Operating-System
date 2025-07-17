@@ -124,7 +124,12 @@ void terminal_handle_command(const char* cmd) {
         print_char('\n');
     } else if (strcmp(args[0], "wd") == 0) {
         for (int i = 1; i < argc; i++) {
-            
+            if (strcmp(args[i], "-s")){
+
+            }
+            if (strcmp(args[i], "-c")){
+                
+            }
         }
         uint8_t buffer[512] = {0};
         int bi = 0;
@@ -140,10 +145,10 @@ void terminal_handle_command(const char* cmd) {
         redraw_screen();
     } else if (strcmp(args[0], "help") == 0) {
         print_string("Available commands:\n");
-        print_string("  help         - Show this message\n");
-        print_string("  clear        - Clear the screen\n");
-        print_string("  echo [text]  - Print text\n");
-        print_string("  wd [text]    - Write to drive\n");
+        print_string("  help                             - Show this message\n");
+        print_string("  clear                            - Clear the screen\n");
+        print_string("  echo [text]                      - Print text\n");
+        print_string("  wd -s [sector number] -c [text]  - Write to drive\n");
     } else {
         print_string("Unknown command: ");
         print_string(args[0]);
