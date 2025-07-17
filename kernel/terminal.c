@@ -126,12 +126,10 @@ void terminal_handle_command(const char* cmd) {
         uint8_t buffer[512] = {0};
         int bi = 0;
         for (int i = 1; i < argc; i++) {
-            for (int j = 0; args[i][j]; j++) {
+            for (int j = 0; args[i][j]; j++)
                 buffer[bi++] = args[i][j];
-            }
-            if (i < argc - 1) {
+            if (i < argc - 1)
                 buffer[bi++] = ' ';
-            }
         }
         ata_write_sector(0, buffer);
     } else if (strcmp(args[0], "clear") == 0) {
