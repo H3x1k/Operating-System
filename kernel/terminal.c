@@ -123,6 +123,9 @@ void terminal_handle_command(const char* cmd) {
         }
         print_char('\n');
     } else if (strcmp(args[0], "wd") == 0) {
+        for (int i = 1; i < argc; i++) {
+            
+        }
         uint8_t buffer[512] = {0};
         int bi = 0;
         for (int i = 1; i < argc; i++) {
