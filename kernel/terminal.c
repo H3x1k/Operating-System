@@ -77,6 +77,21 @@ static char* strtok(char* str, const char* delim) {
     return start;
 }
 
+uint32_t string_to_int(const char *str) {
+    uint32_t result = 0;
+    while (*str) {
+        if (*str >= '0' && *str <= '9') {
+            result = result * 10 + (*str - '0');
+        } else {
+            // Invalid character for an integer
+            return 0;
+        }
+        str++;
+    }
+    return result;
+}
+
+
 
 void terminal_put_char(char c) {
     if (c == '\n') {
@@ -96,7 +111,7 @@ void terminal_put_char(char c) {
 }
 
 void terminal_handle_command(const char* cmd) {
-     char* args[MAX_ARGS];
+    char* args[MAX_ARGS];
     int argc = 0;
 
     // Make a modifiable copy of the input
@@ -123,23 +138,28 @@ void terminal_handle_command(const char* cmd) {
         }
         print_char('\n');
     } else if (strcmp(args[0], "wd") == 0) {
-        for (int i = 1; i < argc; i++) {
-            if (strcmp(args[i], "-s")){
-
-            }
-            if (strcmp(args[i], "-c")){
-                
-            }
+        uint32_t s = 0;
+        int argstart = 1;
+        if (strcmp(args[1], "-s") == 0) {
+            s = string_to_int(args[2]);
+            if (strcmp(args[3], "-m") == 0)
+                argstart = 4;
+        } else if (strcmp(args[1], "-m") == 0)
+                argstart = 2;
+        else {
+            print_string("Invalid use of wd\n");
+            goto end;
         }
+        
         uint8_t buffer[512] = {0};
         int bi = 0;
-        for (int i = 1; i < argc; i++) {
+        for (int i = argstart; i < argc; i++) {
             for (int j = 0; args[i][j]; j++)
                 buffer[bi++] = args[i][j];
             if (i < argc - 1)
                 buffer[bi++] = ' ';
         }
-        ata_write_sector(0, buffer);
+        ata_write_sector(s, buffer);
     } else if (strcmp(args[0], "clear") == 0) {
         init_screen();
         redraw_screen();
@@ -148,12 +168,12 @@ void terminal_handle_command(const char* cmd) {
         print_string("  help                             - Show this message\n");
         print_string("  clear                            - Clear the screen\n");
         print_string("  echo [text]                      - Print text\n");
-        print_string("  wd -s [sector number] -c [text]  - Write to drive\n");
+        print_string("  wd -s [sector number] -m [text]  - Write to drive\n");
     } else {
         print_string("Unknown command: ");
         print_string(args[0]);
         print_char('\n');
     }
-
+    end:
     print_string("> ");
 }
