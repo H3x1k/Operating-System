@@ -110,6 +110,22 @@ void terminal_put_char(char c) {
     }
 }
 
+
+
+void edit() {
+    init_screen();
+    redraw_screen();
+    
+    bool editing = true;
+
+    while (editing) {
+        
+
+
+    }
+}
+
+
 void terminal_handle_command(const char* cmd) {
     char* args[MAX_ARGS];
     int argc = 0;
@@ -160,6 +176,8 @@ void terminal_handle_command(const char* cmd) {
                 buffer[bi++] = ' ';
         }
         ata_write_sector(s, buffer);
+    } else if (strcmp(args[0], "edit") == 0) {
+
     } else if (strcmp(args[0], "clear") == 0) {
         init_screen();
         redraw_screen();
