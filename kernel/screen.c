@@ -31,27 +31,6 @@ static uint16_t screen_text_buffer[BUFFER_LINES][VGA_WIDTH];
 int scroll_offset = 0;
 uint16_t cursor_pos = 0;
 
-void init_screen() {
-    for (int i = 0; i < BUFFER_LINES; i++) {
-        for (int j = 0; j < VGA_WIDTH; j++) {
-            screen_text_buffer[i][j] = ((uint16_t)DEFAULT_ATTR << 8) | ' ';
-        }
-    }
-    cursor_pos = 0;
-    scroll_offset = 0;
-}
-
-void redraw_screen() {
-    for (int y = 0; y < VGA_HEIGHT; y++) {
-        int buffer_line = scroll_offset + y;
-        if (buffer_line < BUFFER_LINES) {
-            for (int x = 0; x < VGA_WIDTH; x++) {
-                VGA_MEMORY[y * VGA_WIDTH + x] = screen_text_buffer[buffer_line][x];
-            }
-        }
-    }
-}
-
 void move_cursor(uint16_t pos) {
     cursor_pos = pos;
 
@@ -66,6 +45,28 @@ void move_cursor(uint16_t pos) {
     outb(0x3D5, (uint8_t)(pos & 0xFF));
     outb(0x3D4, 0x0E);
     outb(0x3D5, (uint8_t)((pos >> 8) & 0xFF));
+}
+
+void init_screen() {
+    for (int i = 0; i < BUFFER_LINES; i++) {
+        for (int j = 0; j < VGA_WIDTH; j++) {
+            screen_text_buffer[i][j] = ((uint16_t)DEFAULT_ATTR << 8) | ' ';
+        }
+    }
+    cursor_pos = 0;
+    scroll_offset = 0;
+    move_cursor(cursor_pos);
+}
+
+void redraw_screen() {
+    for (int y = 0; y < VGA_HEIGHT; y++) {
+        int buffer_line = scroll_offset + y;
+        if (buffer_line < BUFFER_LINES) {
+            for (int x = 0; x < VGA_WIDTH; x++) {
+                VGA_MEMORY[y * VGA_WIDTH + x] = screen_text_buffer[buffer_line][x];
+            }
+        }
+    }
 }
 
 void scroll_up() {

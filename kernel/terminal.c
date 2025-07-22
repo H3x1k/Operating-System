@@ -1,5 +1,8 @@
-#include "screen.h"
 #include "terminal.h"
+
+#include "screen.h"
+#include "keyboard.h"
+
 #include "ata.h"
 #include <stdbool.h>
 
@@ -12,6 +15,8 @@
 
 static char input_buffer[MAX_INPUT];
 static int input_len = 0;
+
+static bool editing = false;
 
 static int strcmp(const char* s1, const char* s2) {
     while (*s1 && (*s1 == *s2)) {
@@ -97,7 +102,7 @@ void terminal_put_char(char c) {
     if (c == '\n') {
         print_char('\n');
         input_buffer[input_len] = '\0';
-        terminal_handle_command(input_buffer);
+        if (!editing) terminal_handle_command(input_buffer);
         input_len = 0;
     } else if (c == '\b') {
         if (input_len > 0) {
@@ -115,14 +120,22 @@ void terminal_put_char(char c) {
 void edit() {
     init_screen();
     redraw_screen();
-    
-    bool editing = true;
+
+    editing = true;
 
     while (editing) {
-        
+        char typedChar = get_scancode();
+        char ascii = scancode_to_ascii((uint8_t)typedChar);
+        terminal_put_char(ascii);
 
+        if (ascii == 27) {
+            editing = false;
+        }
 
     }
+
+    init_screen();
+    redraw_screen();
 }
 
 
@@ -143,7 +156,7 @@ void terminal_handle_command(const char* cmd) {
     }
 
     if (argc == 0)
-        return;
+        goto end;
 
     // --- Command dispatch ---
     if (strcmp(args[0], "echo") == 0) {
@@ -177,7 +190,7 @@ void terminal_handle_command(const char* cmd) {
         }
         ata_write_sector(s, buffer);
     } else if (strcmp(args[0], "edit") == 0) {
-
+        edit();
     } else if (strcmp(args[0], "clear") == 0) {
         init_screen();
         redraw_screen();
@@ -187,6 +200,7 @@ void terminal_handle_command(const char* cmd) {
         print_string("  clear                            - Clear the screen\n");
         print_string("  echo [text]                      - Print text\n");
         print_string("  wd -s [sector number] -m [text]  - Write to drive\n");
+        print_string("  edit [filename]                  - Edit file (unfinished, no file system)\n");
     } else {
         print_string("Unknown command: ");
         print_string(args[0]);

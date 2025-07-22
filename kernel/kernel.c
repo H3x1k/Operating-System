@@ -13,8 +13,8 @@ void kernel_main() {
     print_string("Hello, World!\n> ");
 
     while(1) {
-        char typedChar = get_scancode();  // Get scan code
-        char ascii = scancode_to_ascii((uint8_t)typedChar);  // Convert to ASCII
+        char typedChar = get_scancode();
+        char ascii = scancode_to_ascii((uint8_t)typedChar);
         terminal_put_char(ascii);
     }
 }
