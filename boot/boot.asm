@@ -25,6 +25,8 @@ start:
 
     ; Load GDT
     lgdt [gdt_descriptor]
+    mov si, gdt_load_msg
+    call print_string
 
     ; VGA 80x25 text mode
     mov ah, 0x00
@@ -225,6 +227,7 @@ cursor_pos dw 0         ; Current cursor position
 boot_drive db 0
 disk_error_msg db "Disk error!", 0
 disk_success_msg db "Disk read", 0
+gdt_load_msg db "GDT Loaded", 0
 protected_mode_msg db "32b mode", 0
 
 times 510 - ($ - $$) db 0
