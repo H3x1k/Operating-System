@@ -6,7 +6,7 @@ start:
     mov [boot_drive], dl
 
     ; Set up segments for real mode
-    xor ax, ax        ; Segments can't be directly set use 16 bit register
+    xor ax, ax       ; Segments can't be directly set use 16 bit register
     mov ds, ax       ; Data Segment
     mov es, ax       ; Extra Segment
     mov ss, ax       ; Stack Segment
@@ -21,10 +21,11 @@ start:
     mov si, disk_success_msg
     call print_string
 
-    ; Set up A20 Line ???
+    ; Set up A20 Line
+    call enable_a20
 
     ; Load GDT
-    lgdt [gdt_descriptor]
+    lgdt [gdt_descriptor] ; Real test might not be making it to this point
     mov si, gdt_load_msg
     call print_string
 
@@ -159,8 +160,8 @@ gdt_descriptor:
     dd gdt_start                 ; Address of GDT
 
 ; Define segment selectors
-CODE_SEG equ gdt_code - gdt_start
-DATA_SEG equ gdt_data - gdt_start
+CODE_SEG equ 0x08   ; gdt_code - gdt_start
+DATA_SEG equ 0x10   ; gdt_data - gdt_start
 
 
 
@@ -168,7 +169,10 @@ DATA_SEG equ gdt_data - gdt_start
 
 
 enable_a20: 
-
+    in al, 0x92
+    or al, 00000010b
+    out 0x92, al
+    ret
 
 
 

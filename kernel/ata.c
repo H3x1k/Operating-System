@@ -15,7 +15,7 @@
 #define ATA_CMD_FLUSH  0xE7
 
 void ata_write_sector(uint32_t lba, uint8_t* buffer) {
-    outb(ATA_SECCOUNT0, 1);                  // 1 sector
+    outb(ATA_SECCOUNT0, 1); // 1 sector
     outb(ATA_LBA0, lba & 0xFF);
     outb(ATA_LBA1, (lba >> 8) & 0xFF);
     outb(ATA_LBA2, (lba >> 16) & 0xFF);
